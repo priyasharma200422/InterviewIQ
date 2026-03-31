@@ -15,13 +15,12 @@ function App() {
     "Where do you see yourself in the next 5 years?"
   ];
 
-  // 🎨 pastel backgrounds
   const pastelColors = [
-    "#d0f0fd", // sky blue
-    "#ffe4ec", // baby pink
-    "#fff9c4", // light yellow
-    "#d4f8e8", // light green
-    "#f5f5dc", // beige
+    "#d0f0fd",
+    "#ffe4ec",
+    "#fff9c4",
+    "#d4f8e8",
+    "#f5f5dc",
   ];
 
   const [started, setStarted] = useState(false);
@@ -29,16 +28,21 @@ function App() {
   const [answer, setAnswer] = useState("");
   const [results, setResults] = useState([]);
   const [finished, setFinished] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleNext = async () => {
     if (answer.trim() === "") return;
 
-    const res = await axios.post("https://interviewiq-backend-uyj0.onrender.com/api/interview", {
-      answer,
-    });
+    setLoading(true);
+
+    const res = await axios.post(
+      "https://interviewiq-backend-uyj0.onrender.com/api/interview",
+      { answer }
+    );
 
     setResults([...results, res.data]);
     setAnswer("");
+    setLoading(false);
 
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
@@ -62,11 +66,27 @@ function App() {
 
   const bgColor = pastelColors[currentIndex % pastelColors.length];
 
+  // 🔥 OVERALL SCORE
+  const totalScore =
+    results.length > 0
+      ? results.reduce((sum, r) => sum + r.score, 0) / results.length
+      : 0;
+
+  // 🔥 FINAL SUMMARY
+  let summary = "";
+  if (totalScore >= 8) {
+    summary = "Excellent performance. Strong communication and clarity.";
+  } else if (totalScore >= 6) {
+    summary = "Good performance but can improve with better examples.";
+  } else {
+    summary = "Needs improvement in clarity and structure.";
+  }
+
   return (
     <div style={{ ...styles.container, background: bgColor }}>
       {!started ? (
         <div style={styles.card}>
-          <h1 style={styles.title}>Interview Intelligence System</h1>
+          <h1 style={styles.title}>InterviewIQ</h1>
           <button style={styles.primaryBtn} onClick={() => setStarted(true)}>
             Start Interview
           </button>
@@ -75,13 +95,21 @@ function App() {
         <div style={styles.card}>
           <h1 style={styles.title}>Performance Report</h1>
 
+          {/* 🔥 OVERALL SCORE */}
+          <h2 style={{ color: totalScore >= 7 ? "green" : "red" }}>
+            Overall Score: {totalScore.toFixed(1)} / 10
+          </h2>
+
+          {/* 🔥 SUMMARY */}
+          <p style={{ marginBottom: "20px", color: "#333" }}>{summary}</p>
+
           <p style={styles.subtitle}>
             Questions Answered: {results.length}
           </p>
 
           {results.map((r, i) => (
             <div key={i} style={styles.resultCard}>
-              <h3 style={{ color: "#222" }}>Question {i + 1}</h3>
+              <h3>Question {i + 1}</h3>
 
               <p
                 style={{
@@ -120,7 +148,7 @@ function App() {
 
           <div style={styles.buttonGroup}>
             <button style={styles.primaryBtn} onClick={handleNext}>
-              Submit & Next
+              {loading ? "Analyzing..." : "Submit & Next"}
             </button>
 
             <button style={styles.finishBtn} onClick={finishEarly}>
@@ -149,7 +177,7 @@ const styles = {
     padding: "40px",
     borderRadius: "16px",
     width: "100%",
-    maxWidth: "800px",   // 🔥 increased width
+    maxWidth: "800px",
     textAlign: "center",
     boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
   },
@@ -161,12 +189,10 @@ const styles = {
   subtitle: {
     marginBottom: "20px",
     color: "#444",
-    fontSize: "16px",
   },
   question: {
     marginBottom: "25px",
     color: "#111",
-    fontSize: "22px",
   },
   textarea: {
     width: "100%",
@@ -175,7 +201,6 @@ const styles = {
     borderRadius: "10px",
     border: "1px solid #aaa",
     marginBottom: "15px",
-    fontSize: "15px",
   },
   progress: {
     fontSize: "14px",
@@ -184,7 +209,6 @@ const styles = {
   },
   buttonGroup: {
     display: "flex",
-    justifyContent: "space-between",
     gap: "10px",
   },
   primaryBtn: {
@@ -195,7 +219,6 @@ const styles = {
     border: "none",
     borderRadius: "10px",
     cursor: "pointer",
-    fontSize: "15px",
   },
   finishBtn: {
     flex: 1,
@@ -205,7 +228,6 @@ const styles = {
     border: "none",
     borderRadius: "10px",
     cursor: "pointer",
-    fontSize: "15px",
   },
   resultCard: {
     textAlign: "left",
