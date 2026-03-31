@@ -33,7 +33,7 @@ function App() {
   const handleNext = async () => {
     if (answer.trim() === "") return;
 
-    const res = await axios.post("http://localhost:5000/api/interview", {
+    const res = await axios.post("https://interviewiq-backend-uyj0.onrender.com/api/interview", {
       answer,
     });
 
